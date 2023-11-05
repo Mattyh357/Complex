@@ -2,11 +2,18 @@ import paho.mqtt.client as mqtt_client
 
 
 class MQTTClient:
-    def __init__(self, broker, port, topic):
+
+    broker: str
+    port: int
+    client: mqtt_client.Client
+
+    topics: []
+
+    def __init__(self, broker, port, topics):
         self.broker = broker
         self.port = port
-        self.topic = topic
         self.client = mqtt_client.Client()
+        self.topics = topics
 
         # Assign event callbacks
         self.client.on_connect = self.on_connect
@@ -14,8 +21,9 @@ class MQTTClient:
 
     def on_connect(self, client, userdata, flags, rc):
         print(f"Connected: {rc}")
-        # Subscribing in on_connect() - if we lose the connection and reconnect then subscriptions will be renewed
-        self.client.subscribe(self.topic)
+        # Subscribe to all topics in the list
+        for topic in self.topics:
+            self.client.subscribe(topic)
 
     def on_message(self, client, userdata, msg):
         print(f"Received message: '{msg.payload.decode()}' on topic '{msg.topic}' with QoS {msg.qos}")
@@ -29,5 +37,5 @@ class MQTTClient:
         self.client.disconnect()
 
     # Publish a message to a topic
-    def publish(self, message):
-        self.client.publish(self.topic, message)
+    def publish(self, topic, message):
+        self.client.publish(topic, message)
