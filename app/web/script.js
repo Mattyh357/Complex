@@ -1,14 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Starting - http://192.168.1.106:1234")
-
-    var socket = io.connect('localhost:1234');
+    console.log("Starting - http://" + SERVER_IP + ":" + SERVER_PORT)
+    var socket = io.connect(SERVER_IP + ':' + SERVER_PORT);
 
     socket.on('connect', function() {
         console.log('Connected to server.');
     });
 
     socket.on('data', function(data) {
-        console.log("Received:", data);
+//        console.log("Received:", data);
 
         temperature = data.temperature
         humidity = data.humidity

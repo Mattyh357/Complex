@@ -8,6 +8,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 <!--    <link rel="stylesheet" href="styles.css">-->
 
+
+    <!--   Global variables   -->
+    <script type="text/javascript">
+        var SERVER_IP = "{{ ip_address }}";
+        var SERVER_PORT = "{{ port }}";
+    </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 
