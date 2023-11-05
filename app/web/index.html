@@ -1,1 +1,72 @@
-hello
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMPLEX</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<!--    <link rel="stylesheet" href="styles.css">-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
+
+
+</head>
+<body>
+
+
+    <h1>C.O.M.P.L.E.X </h1>
+    <h2>Complicated Overengineered Measurement Project for Logging Environmental eXtremes</h2>
+
+    <div class="menu-bar">
+        <ul class="menu">
+            <li><a href="/">Home</a></li>
+            <li><a href="/config">Config</a></li>
+            <li><a href="#contact">TODO</a></li>
+            <li><a href="#about">TODO</a></li>
+        </ul>
+    </div>
+
+
+
+    <div class="dataRow">
+        <div>
+            <div class="card-header">Temperature</div>
+            <div class="card-content">
+                <span id="data_temp">X</span>
+                <span>&nbsp°C</span>
+            </div>
+        </div>
+        <div>
+            <div class="card-header">Humidity</div>
+            <div class="card-content">
+                <span id="data_humidity">Y</span>
+                <span>&nbsp%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dataRow">
+        <div>
+            <div class="card-header">Uptime</div>
+            <div class="card-content">
+                <p id="data_uptime">HH:mm:ss</p>
+            </div>
+        </div>
+        <div>
+            <div class="card-header">Cloud</div>
+            <div class="card-content">
+                <p id="data_cloud">Connected</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer">
+        © 2023 Matt (Martin) Hnizdo - 2005647
+    </div>
+
+</body>
+</html>
