@@ -1,4 +1,41 @@
-/* TODO header stuff */
+/**
+ *  @file led_module.c
+ *  @brief Python LED control module
+ *
+ * Pythom module implementing an interface for controlling a single LED connected to GPIO pin.
+ *
+ * It provides methods to turn on, turn off, or blink the led.
+ *
+ * The module defines the following methods:
+ *  - init_led: Exports the PIO pin and sets its directions
+ *  - turn_on: Turns the LED on by setting the GPIO pin to HIGH (overrides blinking)
+ *  - turn_off: Turn the LED off by setting the GPIO pin to LOW (overrides blinking)
+ *  - startBlinking: Starts a separate thread to meke the LED blink untill stopBlinking, turn_on, turn_off is called
+ *  - stopBlinking: Stop the blinking thread and turns the LED off
+ *
+ *  TODO something about permissions
+ *
+ *  TODO disclamer? just to meke it look cool :D
+ *
+ *  TODO dependancies
+ *
+ *  TODO Compile with to add python.h
+ * gcc -shared -o led_module.so led_module.c -fPIC $(python3-config --includes) $(python3-config --libs)
+ *
+ *
+ *  @TODO Implemnent cleanup method that will close/unexport the GPIO pin when closing
+ *
+ *  @warning using /sys/class/gpio was DEPRECATED and should used! This module is only to be used for EDUCATIONAL purposes.
+ *
+ *  @author Matt (Martin) Hnizdo
+ *
+ *  @date 05/11/2023
+ *
+ *  @version 0.1
+ *
+ *  @bug might throw and error when the os a bit sluggish and takes a while to export the pin
+ */
+
 
 #include <stdio.h>
 #include <unistd.h>
@@ -25,7 +62,7 @@
 
 
 static char* stored_gpio = NULL;    // store the GPIO pin
-static int _isBlinking = 0;         // Is led blinking? TODO can be bool?
+static int _isBlinking = 0;         // Is led blinking?
 static pthread_t blinking_thread;   // Blinking thread
 
 
@@ -68,9 +105,24 @@ static void export_gpio(const char* gpio) {
     // }
 
     close(fd);
+
+    usleep(500000); // small delay to make sure linux has time to add it
 }
 
-//TODO comments
+
+/**
+ * @brief Sets direction of specicied GPIO pin
+ *
+ * By writing in or out to the direction file,
+ * the GPIO will set to the appropriate direction.
+ *
+ * @note This function will terminate the program if it fails to open the
+ * GPIO export file or fails to write to it.
+ *
+ * @param gpio The GPIO number as a string.
+ * @param direction The direction as a string ("in" or "out").
+ *
+ */
 static void set_gpio_direction(const char* gpio, const char* direction) {
     char path[40];
     sprintf(path, GPIO_DIRECTION_PATH_FORMAT, gpio);
@@ -89,7 +141,19 @@ static void set_gpio_direction(const char* gpio, const char* direction) {
     close(fd);
 }
 
-//TODO comments
+/**
+ * @brief Write a value to specicied GPIO pin
+ *
+ * By writing value (1/0) to the value file,
+ * the GPIO will set to set to either HIGH or Low.
+ *
+ * @note This function will terminate the program if it fails to open the
+ * GPIO export file or fails to write to it.
+ *
+ * @param gpio The GPIO number as a string.
+ * @param direction The value as a string ("0" or "1").
+ *
+ */
 static void write_gpio(const char* gpio, const char* value) {
     char path[40];
     sprintf(path, GPIO_VALUE_PATH_FORMAT, gpio);
@@ -128,22 +192,17 @@ void* blink(void* arg) {
 // * Exposed python methods                      *
 // ***********************************************
 
-
-// TODO comments
-static PyObject* startBlinking(PyObject* self, PyObject* args) {
-    _isBlinking = 1;
-    pthread_create(&blinking_thread, NULL, blink, stored_gpio);
-    Py_RETURN_NONE;
-}
-
-// TODO comments
-static PyObject* stopBlinking(PyObject* self, PyObject* args) {
-    _isBlinking = 0;
-    pthread_join(blinking_thread, NULL);
-    Py_RETURN_NONE;
-}
-
-
+/**
+ * @brief Initialize the LED GPIO.
+ *
+ * This function sets up a GPIO pin for use as an LED.
+ * Exports -> set direction -> write low  (to start off)
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject containing a string representing the GPIO pin number.
+ *
+ * @return PyObject* Py_None on success, or NULL on failure with an exception set.
+ */
 static PyObject* init_led(PyObject* self, PyObject* args) {
     const char* gpio;
     if (!PyArg_ParseTuple(args, "s", &gpio))
@@ -159,19 +218,87 @@ static PyObject* init_led(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
+/**
+ * @brief Start blinking the LED on a separate thread.
+ *
+ * This function initiates the blinking of an LED by starting a new thread
+ * and setting a flag that to indicate that led is blinking.
+ * The LED will keep blinking until stopBlinking() is called.
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject representing the arguments (unused).
+ *
+ * @return PyObject* Py_None.
+ */
+static PyObject* startBlinking(PyObject* self, PyObject* args) {
+    _isBlinking = 1;
+    pthread_create(&blinking_thread, NULL, blink, stored_gpio);
+    Py_RETURN_NONE;
+}
 
+/**
+ * @brief Stop blinking the LED and wait for the thread to finish.
+ *
+ * This function sets a flag to stop the blinking of an LED and joins the
+ * blinking thread, effectively waiting for the thread to terminate.
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject representing the arguments (unused).
+ *
+ * @return PyObject* Py_None.
+ */
+static PyObject* stopBlinking(PyObject* self, PyObject* args) {
+    _isBlinking = 0;
+    pthread_join(blinking_thread, NULL);
+    Py_RETURN_NONE;
+}
+
+/**
+ * @brief Turn on the LED.
+ *
+ * This function sets the GPIO level to HIGH, effectively turning on the LED.
+ *
+ * @note if LED was blinking before, it's not anymnore
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject representing the arguments (unused).
+ *
+ * @return PyObject* Py_None.
+ */
 static PyObject* turn_on(PyObject* self, PyObject* args) {
+    // If blinking -> stop
+    if (_isBlinking) {
+        _isBlinking = 0;
+        pthread_join(blinking_thread, NULL);
+    }
+
     write_gpio(stored_gpio, HIGH);
 
     Py_RETURN_NONE;
 }
 
+/**
+ * @brief Turn off the LED.
+ *
+ * This function sets the GPIO level to LOW, effectively turning off the LED.
+ *
+ * @note if LED was blinking before, it's not anymnore
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject representing the arguments (unused).
+ *
+ * @return PyObject* Py_None.
+ */
 static PyObject* turn_off(PyObject* self, PyObject* args) {
-        write_gpio(stored_gpio, LOW);
+    // If blinking -> stop
+    if (_isBlinking) {
+        _isBlinking = 0;
+        pthread_join(blinking_thread, NULL);
+    }
+
+    write_gpio(stored_gpio, LOW);
     Py_RETURN_NONE;
 }
-
-
 
 
 // ***********************************************
