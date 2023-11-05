@@ -132,7 +132,7 @@ static ssize_t sbtn_read(struct file *filp, char __user *buffer, size_t length, 
         return -EINVAL; // Invalid argument
     }
 
-    if (copy_to_user(buffer, btn_state, bytes_to_write)) {
+    if (copy_to_user(buffer, btn_state, btn_state_size)) {
         return -EFAULT; // Bad address
     }
 
