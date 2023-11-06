@@ -25,16 +25,51 @@
     <h2>Configuration</h2>
 
     <div class="form-container">
-        <form action="/submit-form" method="post">
+        <form method="post">
 
-            {{ form.port.label }}
-            <p>{{ form.port.description }}</p>
-            {{ form.port() }}
-            {% for error in form.port.errors %}
+            {{ form.hidden_tag() }}
+
+            {{ form.web_port.label }}
+            <p>DESCRIPTION</p>
+            {{ form.web_port() }}
+            {% for error in form.web_port.errors %}
               <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
 
+            {{ form.mqtt_broker.label }}
+            <p>DESCRIPTION</p>
+            {{ form.mqtt_broker() }}
+            {% for error in form.mqtt_broker.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
 
+            {{ form.mqtt_port.label }}
+            <p>DESCRIPTION</p>
+            {{ form.mqtt_port() }}
+            {% for error in form.mqtt_port.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+
+            {{ form.mqtt_topic_temperature.label }}
+            <p>DESCRIPTION</p>
+            {{ form.mqtt_topic_temperature() }}
+            {% for error in form.mqtt_topic_temperature.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+
+            {{ form.mqtt_topic_humidity.label }}
+            <p>DESCRIPTION</p>
+            {{ form.mqtt_topic_humidity() }}
+            {% for error in form.mqtt_topic_humidity.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+
+            {{ form.mqtt_topic_uptime.label }}
+            <p>DESCRIPTION</p>
+            {{ form.mqtt_topic_uptime() }}
+            {% for error in form.mqtt_topic_uptime.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
 
             {{ form.submit() }}
 
@@ -42,7 +77,7 @@
     </div>
 
     <div id="footer">
-        © 2023 Matt (Martin) Hnizdo - 2005647
+        © 2023 Matt (Martin) - 2005647
     </div>
 
 </body>
