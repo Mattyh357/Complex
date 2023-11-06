@@ -1,3 +1,5 @@
+import sys
+
 from flask import Flask, render_template, redirect, url_for
 from flask_socketio import SocketIO
 import eventlet
@@ -17,9 +19,10 @@ class ConfigForm(FlaskForm):
     Contains names and validation data that will be used to dynamically build the form.
     """
 
+    web_ip = StringField('Web IP address', default="0", validators=[DataRequired()])
     web_port = StringField('Web interface port', default="0", validators=[DataRequired()])
 
-    mqtt_broker = StringField('MQTT broker', default="0", validators=[DataRequired()])
+    mqtt_broker = StringField('MQTT broker', default="0")
     mqtt_port = StringField('MQTT port', default="0", validators=[DataRequired()])
     mqtt_topic_temperature = StringField('MQTT temperature topic', default="0", validators=[DataRequired()])
     mqtt_topic_humidity = StringField('MQTT humidity topic', default="0", validators=[DataRequired()])
@@ -52,7 +55,6 @@ class WebApp:
         self.ip_address = ip
         self.port = port
         self.config = config
-        self.is_running = False
 
         eventlet.monkey_patch()
         self.flask = Flask(__name__, static_folder='web', template_folder='web')
@@ -74,7 +76,9 @@ class WebApp:
 
             if form.validate_on_submit():
                 # SAVE DATA
+                self.config.web_ip = form.web_ip.data
                 self.config.web_port = form.web_port.data
+
                 self.config.mqtt_broker = form.mqtt_broker.data
                 self.config.mqtt_port = form.mqtt_port.data
                 self.config.mqtt_topic_temperature = form.mqtt_topic_temperature.data
@@ -86,7 +90,9 @@ class WebApp:
                 return redirect(url_for('config_done'))
 
             # Display page
+            form.web_ip.data = self.config.web_ip
             form.web_port.data = self.config.web_port
+
             form.mqtt_broker.data = self.config.mqtt_broker
             form.mqtt_port.data = self.config.mqtt_port
             form.mqtt_topic_temperature.data = self.config.mqtt_topic_temperature
@@ -97,7 +103,7 @@ class WebApp:
 
         @self.flask.route('/config-done')
         def config_done():
-            link = "http://" + self.ip_address + ":" + str(self.config.web_port)
+            link = "http://" + self.config.web_ip + ":" + str(self.config.web_port)
             return "config changed.... wait a sec for restart and then press this: <a href='"+link+"'>here</a>"
 
     def send_data(self, payload, event="data"):
@@ -121,11 +127,8 @@ class WebApp:
         """
         try:
             self.socketio.run(self.flask, host=self.ip_address, port=self.port, debug=False)
-            self.is_running = True
-            return True
         except Exception as e:
             Logger.critical(f"WebApp: {e}")
-            return False
 
 
     def stop(self):
