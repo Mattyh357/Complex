@@ -32,13 +32,13 @@ class Sensor_DHT22:
         try:
             return self.dhtDevice.temperature
         except RuntimeError as error:
-            return -1
+            return None
 
     def get_humidity(self):
         try:
             return self.dhtDevice.humidity
         except RuntimeError as error:
-            return -1
+            return None
 
     def _get_pin_by_number(self, pin_number):
         pin_mapping = {
