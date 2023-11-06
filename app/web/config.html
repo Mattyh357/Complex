@@ -29,22 +29,29 @@
 
             {{ form.hidden_tag() }}
 
+            {{ form.web_ip.label }}
+            <p>Replace with a valid local IP</p>
+            {{ form.web_ip() }}
+            {% for error in form.web_ip.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+
             {{ form.web_port.label }}
-            <p>DESCRIPTION</p>
+            <p>Must be valid port.. in range()</p>
             {{ form.web_port() }}
             {% for error in form.web_port.errors %}
               <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
 
             {{ form.mqtt_broker.label }}
-            <p>DESCRIPTION</p>
+            <p>If empty - mqtt will not be used</p>
             {{ form.mqtt_broker() }}
             {% for error in form.mqtt_broker.errors %}
               <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
 
             {{ form.mqtt_port.label }}
-            <p>DESCRIPTION</p>
+            <p>valid port number. default is 1883...</p>
             {{ form.mqtt_port() }}
             {% for error in form.mqtt_port.errors %}
               <span style="color: red;">[{{ error }}]</span>
