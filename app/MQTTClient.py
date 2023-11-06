@@ -2,6 +2,9 @@ import socket
 
 import paho.mqtt.client as mqtt_client
 
+from Logger import Logger
+
+
 class MQTTClient:
 
     broker: str
@@ -50,9 +53,11 @@ class MQTTClient:
         self.client.on_message = self.on_message
 
     def on_connect(self, client, userdata, flags, rc):
-        print(f"Connected: {rc}")
         # Subscribe to all topics in the list
         for topic in self.topics:
+            if topic == "":
+                Logger.error("MQTTClient - somehow got empty topic")
+                return 0
             self.client.subscribe(topic)
 
     def on_message(self, client, userdata, msg):
@@ -64,16 +69,13 @@ class MQTTClient:
 
         :return: Connection successful bool
         """
-        self.is_connected = False
+        Logger.info(f"MQTTClient - Trying to connect to broker: {self.broker}, {self.port}")
 
         try:
             self.client.connect(self.broker, self.port, self.keep_alive)
             self.client.loop_start()
-        except socket.error as err:
-            print(f"Connection failed: {err}")
-            return False
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            Logger.error(f"MQTTClient - An unexpected error occurred: {e}")
             # TODO Handle
             return False
 
@@ -96,13 +98,18 @@ class MQTTClient:
         Publish method to a topic with optional QoS and Retain flags.
         Will not attempt to publish anything if not connected.
 
-        :param topic:   The topic where the message will be send to.
+        :param topic:   The topic where the message will be sent to.
         :param message: Content of the message.
         :param qos:     (optional) Overrides the 'qos' flag set in the init.
         :param retain:  (optional) Overrides the 'retain' flag set in the init.
         """
 
         if self.is_connected is False:
+            return False
+
+
+        if topic == "":
+            Logger.error("MQTTClient - somehow got empty topic")
             return False
 
         qos = self.qos if qos is None else qos
