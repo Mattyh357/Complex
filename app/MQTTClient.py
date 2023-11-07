@@ -1,5 +1,3 @@
-import socket
-
 import paho.mqtt.client as mqtt_client
 
 from Logger import Logger
@@ -27,8 +25,8 @@ class MQTTClient:
         :param keepalive:   (optional) How often to send keep-alive packet.
         :param qos:         (optional) Quality of Service: 0 - at most once, 1 - at least once, 2 - exactly once
         :param retain:      (optional) Retain message by the MQTT broker.
-        :param tls:         (optional) TODO :)
-        :param auth:        (optional) TODO :(
+        :param tls:         (optional) TODO :) Not sure.. as I don't have my broker setup with it... so probably gonna ignore :)
+        :param auth:        (optional) Dictionary containing 'username' and 'password'
         """
         self.broker = broker
         self.port = port
@@ -40,13 +38,12 @@ class MQTTClient:
         self.client = mqtt_client.Client()
         self.topics = topics
 
-        #TODO tls
+        # TODO tls
         # if tls:
         #     self.client.tls_set(tls)
 
-        #TODO auth
-        # if auth:
-        #     self.client.username_pw_set(username, password)
+        if auth:
+            self.client.username_pw_set(auth['username'], auth['password'])
 
         # Assign event callbacks
         self.client.on_connect = self.on_connect
@@ -60,7 +57,8 @@ class MQTTClient:
                 return 0
             self.client.subscribe(topic)
 
-    def on_message(self, client, userdata, msg):
+    @staticmethod
+    def on_message(client, userdata, msg):
         print(f"Received message: '{msg.payload.decode()}' on topic '{msg.topic}' with QoS {msg.qos}")
 
     def start(self):
@@ -76,7 +74,6 @@ class MQTTClient:
             self.client.loop_start()
         except Exception as e:
             Logger.error(f"MQTTClient - An unexpected error occurred: {e}")
-            # TODO Handle
             return False
 
         self.is_connected = True
@@ -106,7 +103,6 @@ class MQTTClient:
 
         if self.is_connected is False:
             return False
-
 
         if topic == "":
             Logger.error("MQTTClient - somehow got empty topic")
