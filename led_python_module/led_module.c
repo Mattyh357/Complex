@@ -52,6 +52,7 @@
 
 #define GPIO_PATH "/sys/class/gpio/"
 #define GPIO_EXPORT_PATH GPIO_PATH "export"
+#define GPIO_UNEXPORT_PATH GPIO_PATH "unexport"
 #define GPIO_VALUE_PATH_FORMAT GPIO_PATH "gpio%s/value"
 #define GPIO_DIRECTION_PATH_FORMAT GPIO_PATH "gpio%s/direction"
 
@@ -61,9 +62,9 @@
 #define LOW "0"
 
 
-static char* stored_gpio = NULL;    // store the GPIO pin
-static int _isBlinking = 0;         // Is led blinking?
-static pthread_t blinking_thread;   // Blinking thread
+static char* gpio_red    = NULL;    // store the GPIO pin for red LED
+static char* gpio_yellow = NULL;    // store the GPIO pin for yellow LED
+static char* gpio_green  = NULL;    // store the GPIO pin for green LED
 
 
 // ***********************************************
@@ -172,21 +173,24 @@ static void write_gpio(const char* gpio, const char* value) {
     close(fd);
 }
 
+// TODO comment
+static void close_gpio(const char* gpio) {
+    int fd = open(GPIO_UNEXPORT_PATH, O_WRONLY);
 
-// TODO blink blink blinkity blink!
-// TODO probably could pass the time there tbh...
-void* blink(void* arg) {
-    char* gpio = (char*) arg;
-
-    while (_isBlinking) {
-        write_gpio(gpio, HIGH);
-        usleep(250000);
-        write_gpio(gpio, LOW);
-        usleep(250000);
+    if (fd == -1) {
+        perror("Unable to open /sys/class/gpio/unexport");
+        exit(1);
     }
 
-    return NULL;
+    write(fd, gpio, strlen(gpio));
+
+    // if (write(fd, GPIO_DHT22, strlen(GPIO_DHT22)) != strlen(GPIO_DHT22)) {
+    //     perror("Error writing to /sys/class/gpio/unexport");
+    //     exit(1);
+    // }
+    close(fd);
 }
+
 
 // ***********************************************
 // * Exposed python methods                      *
@@ -204,101 +208,160 @@ void* blink(void* arg) {
  * @return PyObject* Py_None on success, or NULL on failure with an exception set.
  */
 static PyObject* init_led(PyObject* self, PyObject* args) {
-    const char* gpio;
-    if (!PyArg_ParseTuple(args, "s", &gpio))
+    if (!PyArg_ParseTuple(args, "sss", &gpio_red, &gpio_yellow, &gpio_green))
         return NULL;
 
-    stored_gpio = strdup(gpio); // Store the GPIO pin
+    // Initialize red
+    export_gpio(gpio_red);
+    set_gpio_direction(gpio_red, DIRECTION_OUT);
+    write_gpio(gpio_red, LOW);
 
+    // Initialize yellow
+    export_gpio(gpio_yellow);
+    set_gpio_direction(gpio_yellow, DIRECTION_OUT);
+    write_gpio(gpio_yellow, LOW);
 
-    export_gpio(stored_gpio);
-    set_gpio_direction(stored_gpio, DIRECTION_OUT);
-    write_gpio(stored_gpio, LOW);
+    // Initialize green
+    export_gpio(gpio_green);
+    set_gpio_direction(gpio_green, DIRECTION_OUT);
+    write_gpio(gpio_green, LOW);
 
     Py_RETURN_NONE;
 }
 
 /**
- * @brief Start blinking the LED on a separate thread.
+ * @brief Turn on the red LED.
  *
- * This function initiates the blinking of an LED by starting a new thread
- * and setting a flag that to indicate that led is blinking.
- * The LED will keep blinking until stopBlinking() is called.
+ * This function sets the red GPIO level to HIGH, effectively turning on the LED.
  *
  * @param self The PyObject representing the module (unused).
  * @param args The PyObject representing the arguments (unused).
  *
  * @return PyObject* Py_None.
  */
-static PyObject* startBlinking(PyObject* self, PyObject* args) {
-    _isBlinking = 1;
-    pthread_create(&blinking_thread, NULL, blink, stored_gpio);
+static PyObject* red_on(PyObject* self, PyObject* args) {
+    write_gpio(gpio_green, LOW);
+    write_gpio(gpio_yellow, LOW);
+
+    write_gpio(gpio_red, HIGH);
     Py_RETURN_NONE;
 }
 
 /**
- * @brief Stop blinking the LED and wait for the thread to finish.
+ * @brief Turn off the red LED.
  *
- * This function sets a flag to stop the blinking of an LED and joins the
- * blinking thread, effectively waiting for the thread to terminate.
+ * This function sets the red GPIO level to LOW, effectively turning off the LED.
  *
  * @param self The PyObject representing the module (unused).
  * @param args The PyObject representing the arguments (unused).
  *
  * @return PyObject* Py_None.
  */
-static PyObject* stopBlinking(PyObject* self, PyObject* args) {
-    _isBlinking = 0;
-    pthread_join(blinking_thread, NULL);
+static PyObject* red_off(PyObject* self, PyObject* args) {
+    write_gpio(gpio_red, LOW);
     Py_RETURN_NONE;
 }
 
 /**
- * @brief Turn on the LED.
+ * @brief Turn off the yellow LED.
  *
- * This function sets the GPIO level to HIGH, effectively turning on the LED.
- *
- * @note if LED was blinking before, it's not anymnore
+ * This function sets the yellow GPIO level to LOW, effectively turning off the LED.
  *
  * @param self The PyObject representing the module (unused).
  * @param args The PyObject representing the arguments (unused).
  *
  * @return PyObject* Py_None.
  */
-static PyObject* turn_on(PyObject* self, PyObject* args) {
-    // If blinking -> stop
-    if (_isBlinking) {
-        _isBlinking = 0;
-        pthread_join(blinking_thread, NULL);
-    }
+static PyObject* yellow_on(PyObject* self, PyObject* args) {
+    write_gpio(gpio_green, LOW);
+    write_gpio(gpio_red, LOW);
 
-    write_gpio(stored_gpio, HIGH);
-
+    write_gpio(gpio_yellow, HIGH);
     Py_RETURN_NONE;
 }
 
 /**
- * @brief Turn off the LED.
+ * @brief Turn off the yellow LED.
  *
- * This function sets the GPIO level to LOW, effectively turning off the LED.
- *
- * @note if LED was blinking before, it's not anymnore
+ * This function sets the yellow GPIO level to LOW, effectively turning off the LED.
  *
  * @param self The PyObject representing the module (unused).
  * @param args The PyObject representing the arguments (unused).
  *
  * @return PyObject* Py_None.
  */
-static PyObject* turn_off(PyObject* self, PyObject* args) {
-    // If blinking -> stop
-    if (_isBlinking) {
-        _isBlinking = 0;
-        pthread_join(blinking_thread, NULL);
-    }
-
-    write_gpio(stored_gpio, LOW);
+static PyObject* yellow_off(PyObject* self, PyObject* args) {
+    write_gpio(gpio_yellow, LOW);
     Py_RETURN_NONE;
 }
+
+/**
+ * @brief Turn off the green LED.
+ *
+ * This function sets the green GPIO level to LOW, effectively turning off the LED.
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject representing the arguments (unused).
+ *
+ * @return PyObject* Py_None.
+ */
+static PyObject* green_on(PyObject* self, PyObject* args) {
+    write_gpio(gpio_yellow, LOW);
+    write_gpio(gpio_red, LOW);
+
+    write_gpio(gpio_green, HIGH);
+    Py_RETURN_NONE;
+}
+
+/**
+ * @brief Turn off the green LED.
+ *
+ * This function sets the green GPIO level to LOW, effectively turning off the LED.
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject representing the arguments (unused).
+ *
+ * @return PyObject* Py_None.
+ */
+static PyObject* green_off(PyObject* self, PyObject* args) {
+    write_gpio(gpio_green, LOW);
+    Py_RETURN_NONE;
+}
+
+
+/**
+ * @brief Turn off all the LEDs.
+ *
+ * This function sets the all GPIO levels to LOW, effectively turning off all the LEDs.
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject representing the arguments (unused).
+ *
+ * @return PyObject* Py_None.
+ */
+static PyObject* all_off(PyObject* self, PyObject* args) {
+    write_gpio(gpio_red, LOW);
+    write_gpio(gpio_yellow, LOW);
+    write_gpio(gpio_green, LOW);
+    Py_RETURN_NONE;
+}
+
+/**
+ * @brief Closes GPIO pins
+ *
+ * This function sets unexports all GPIO pins
+ *
+ * @param self The PyObject representing the module (unused).
+ * @param args The PyObject representing the arguments (unused).
+ *
+ * @return PyObject* Py_None.
+ */
+static PyObject* close_led(PyObject* self, PyObject* args) {
+    close_gpio(gpio_red);
+    close_gpio(gpio_yellow);
+    close_gpio(gpio_yellow);
+}
+
 
 
 // ***********************************************
@@ -307,12 +370,17 @@ static PyObject* turn_off(PyObject* self, PyObject* args) {
 
 
 static PyMethodDef LedMethods[] = {
-    {"init_led", init_led, METH_VARARGS, "Initialize LED"},
-    {"turn_on", turn_on, METH_VARARGS, "Turn on LED"},
-    {"turn_off", turn_off, METH_VARARGS, "Turn off LED"},
+    {"init_led", init_led, METH_VARARGS, "Initialize LEDs - pass 'red', 'yellow', 'green' pins"},
+    {"close_led", close_led, METH_VARARGS, "Unexports all the GPIO pins"},
+    {"all_off", all_off, METH_VARARGS, "Turn off all LEDs"},
 
-    {"startBlinking", startBlinking, METH_VARARGS, "Start blinking like crazy"},
-    {"stopBlinking", stopBlinking, METH_VARARGS, "Stop blinking"},
+    {"red_on", red_on, METH_VARARGS, "Turn on red LED"},
+    {"red_off", red_off, METH_VARARGS, "Turn off red LED"},
+    {"yellow_on", yellow_on, METH_VARARGS, "Turn on yellow LED"},
+    {"yellow_off", yellow_off, METH_VARARGS, "Turn off yellow LED"},
+    {"green_on", green_on, METH_VARARGS, "Turn on green LED"},
+    {"green_off", green_off, METH_VARARGS, "Turn off green LED"},
+
 
     {NULL, NULL, 0, NULL} // Sentinel
 };
@@ -331,25 +399,6 @@ static struct PyModuleDef ledmodule = {
 PyMODINIT_FUNC PyInit_led_module(void) {
     return PyModule_Create(&ledmodule);
 }
-
-
-// TODO closing it would probably be nice: D
-
-// void close_gpio() {
-//     int fd;
-//
-//     // Unexport the pin
-//     fd = open(GPIO_UNEXPORT, O_WRONLY);
-//     if (fd == -1) {
-//         perror("Unable to open /sys/class/gpio/unexport");
-//         exit(1);
-//     }
-//     if (write(fd, GPIO_DHT22, strlen(GPIO_DHT22)) != strlen(GPIO_DHT22)) {
-//         perror("Error writing to /sys/class/gpio/unexport");
-//         exit(1);
-//     }
-//     close(fd);
-// }
 
 
 
