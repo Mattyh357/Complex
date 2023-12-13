@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMPLEX</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>C.O.M.P.L.E.X </h1>
+    <h2>Complicated Overengineered Measurement Project for Logging Environmental eXtremes</h2>
+
+    {% include 'menu.html' %}
+
+
+    <h2>Configuration</h2>
+
+    <div class="form-container">
+        <form method="post">
+
+            {{ form.hidden_tag() }}
+
+            {{ form.password.label }}
+            <p>LOGIN</p>
+            {{ form.password() }}
+            {% for error in form.password.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+
+            {{ form.submit() }}
+
+        </form>
+    </div>
+
+    <div id="footer">
+        © 2023 Matt (Martin) - 2005647
+    </div>
+
+</body>
+</html>
+
+
+
+
+
+

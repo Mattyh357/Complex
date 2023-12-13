@@ -12,14 +12,7 @@
     <h1>C.O.M.P.L.E.X </h1>
     <h2>Complicated Overengineered Measurement Project for Logging Environmental eXtremes</h2>
 
-    <div class="menu-bar">
-        <ul class="menu">
-            <li><a href="/">Home</a></li>
-            <li><a href="/config">Config</a></li>
-            <li><a href="#contact">TODO</a></li>
-            <li><a href="#about">TODO</a></li>
-        </ul>
-    </div>
+    {% include 'menu.html' %}
 
 
     <h2>Configuration</h2>
@@ -28,6 +21,15 @@
         <form method="post">
 
             {{ form.hidden_tag() }}
+
+            {{ form.user_id.label }}
+            <p>USER ID</p>
+            {{ form.user_id() }}
+            {% for error in form.user_id.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+
+            <hr /><br />
 
             {{ form.web_ip.label }}
             <p>Replace with a valid local IP</p>
@@ -43,10 +45,12 @@
               <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
 
-            {{ form.mqtt_broker.label }}
+            <hr /><br />
+
+            {{ form.mqtt_endpoint.label }}
             <p>If empty - mqtt will not be used</p>
-            {{ form.mqtt_broker() }}
-            {% for error in form.mqtt_broker.errors %}
+            {{ form.mqtt_endpoint() }}
+            {% for error in form.mqtt_endpoint.errors %}
               <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
 
@@ -57,26 +61,21 @@
               <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
 
-            {{ form.mqtt_topic_temperature.label }}
+            {{ form.mqtt_topic.label }}
             <p>DESCRIPTION</p>
-            {{ form.mqtt_topic_temperature() }}
-            {% for error in form.mqtt_topic_temperature.errors %}
+            {{ form.mqtt_topic() }}
+            {% for error in form.mqtt_topic.errors %}
               <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
 
-            {{ form.mqtt_topic_humidity.label }}
+            {{ form.mqtt_path.label }}
             <p>DESCRIPTION</p>
-            {{ form.mqtt_topic_humidity() }}
-            {% for error in form.mqtt_topic_humidity.errors %}
+            {{ form.mqtt_path() }}
+            {% for error in form.mqtt_path.errors %}
               <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
 
-            {{ form.mqtt_topic_uptime.label }}
-            <p>DESCRIPTION</p>
-            {{ form.mqtt_topic_uptime() }}
-            {% for error in form.mqtt_topic_uptime.errors %}
-              <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
+
 
             {{ form.submit() }}
 
