@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Test</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 5px;
+        }
+    </style>
+
+
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+
+</head>
+<body>
+
+    <h1>C.O.M.P.L.E.X </h1>
+    <h2>Complicated Overengineered Measurement Project for Logging Environmental eXtremes</h2>
+
+
+    <div class="menu-bar" style="height: 50px;">
+        <ul class="menu" id="menu" style="visibility: hidden;">
+            <li><a href="#" onclick="switch_set_session()">Current session</a></li>
+            <li><a href="#" onclick="clear_session()">Clear session</a></li>
+            <li><a href="#" onclick="switch_set_history()">History</a></li>
+        </ul>
+    </div>
+
+    <div id="login"  style="visibility: visible;">
+        <h3>Login</h3>
+
+        <div class="dataRow">
+            <div>
+                <div class="card-header">Enter user ID (device ID) </div>
+                <div class="card-content">
+                    <span id='login_error' style="color: red;"></span>
+                    <input type="text" id="txt_login" placeholder="Enter something">
+                    <button onclick="login()">Login</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="context" style="visibility: hidden;">
+
+        <h3>Last measurement</h3>
+
+        <div class="dataRow">
+            <div>
+                <div class="card-header">Temperature</div>
+                <div class="card-content">
+                    <span id="data_temp"></span>
+                    <span>&nbsp°C</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="card-header">Time</div>
+                <div class="card-content">
+                    <span id="data_time"></span>
+                </div>
+            </div>
+
+            <div>
+                <div class="card-header">Humidity</div>
+                <div class="card-content">
+                    <span id="data_humidity"></span>
+                    <span>&nbsp%</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="graph">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <table id="dataTable">
+            <tr>
+                <th>Date and time</th>
+                <th>Temperature</th>
+                <th>Humidity</th>
+            </tr>
+        </table>
+
+    </div>
+
+    <div id="footer">
+        © 2023 Matt (Martin) - 2005647
+    </div>
+
+
+
+
+    <script src="script.js"></script>
+
+
+</body>
+</html>

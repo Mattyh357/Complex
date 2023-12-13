@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Data Display</title>
+    <script type="text/javascript">
+        var websocket;
+
+        // Function to initialize the WebSocket connection
+        function initWebSocket() {
+            websocket = new WebSocket("wss://6hgbe1xt59.execute-api.us-east-1.amazonaws.com/production/");
+
+            // Event handler when connection is opened
+            websocket.onopen = function(event) {
+                console.log("Connected to WebSocket");
+                websocket.send(JSON.stringify({ action: 'dataUpdate' }));
+                // Request initial data here if needed
+            };
+
+            // Event handler when receiving a message
+            websocket.onmessage = function(event) {
+                console.log("Message received: ", event.data);
+                updateTextArea(event.data);
+            };
+
+            // Event handler for errors
+            websocket.onerror = function(event) {
+                console.error("WebSocket Error: ", event);
+            };
+
+            // Event handler when connection is closed
+            websocket.onclose = function(event) {
+                console.log("WebSocket Connection Closed");
+            };
+        }
+
+        // Function to update the textarea with new data
+        function updateTextArea(message) {
+            document.getElementById("dataDisplay").value = message;
+        }
+
+        // Initialize WebSocket as soon as the page loads
+        window.onload = initWebSocket;
+    </script>
+</head>
+<body>
+    <h1>Data from WebSocket</h1>
+    <textarea id="dataDisplay" rows="10" cols="50">
+        Waiting for data...
+    </textarea>
+</body>
+</html>
