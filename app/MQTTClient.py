@@ -37,7 +37,7 @@ class MQTTClient:
 
         self.endpoint = endpoint
         self.port = port
-        self.client_id = "basicPubSub"
+        self.client_id = "complex"
         self.topic = topic
 
         self.path_ca = ca_path
@@ -121,7 +121,7 @@ class MQTTClient:
         Subscribes to the topic set in the constructor to be able to receive acknowledgements
         """
         Logger.info("MQTTClient - Subscribing to topic '{}'...".format(self.topic))
-        subscribe_future, packet_id = self.mqtt_connection._subscribe(
+        subscribe_future, packet_id = self.mqtt_connection.subscribe(
             topic=self.topic,
             qos=mqtt.QoS.AT_LEAST_ONCE,
             callback=self._on_message_received)
