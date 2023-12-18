@@ -1,44 +1,50 @@
 # TODO MAKE SURE YOU FIX THIS!!! :) otherwise you're gonna be sitting there, crying and scratching your head wondering why it doesn't work......
-# import board
-# import adafruit_dht
+import board
+import adafruit_dht
 
-from unittest.mock import MagicMock, PropertyMock
-import random
-
-board = MagicMock()
-board.D18 = MagicMock()
-adafruit_dht = MagicMock()
-dht_device_mock = MagicMock()
-type(dht_device_mock).temperature = PropertyMock(side_effect=lambda: random.randint(0, 100))
-type(dht_device_mock).humidity = PropertyMock(side_effect=lambda: random.randint(0, 100))
-adafruit_dht.DHT22.return_value = dht_device_mock
+# TODO MOCK START
+# from unittest.mock import MagicMock, PropertyMock
+# import random
+#
+# board = MagicMock()
+# board.D18 = MagicMock()
+# adafruit_dht = MagicMock()
+# dht_device_mock = MagicMock()
+# type(dht_device_mock).temperature = PropertyMock(side_effect=lambda: random.randint(0, 100))
+# type(dht_device_mock).humidity = PropertyMock(side_effect=lambda: random.randint(0, 100))
+# adafruit_dht.DHT22.return_value = dht_device_mock
 # TODO MOCK STOP
 
 
 class Sensor_DHT22:
 
     dhtDevice: adafruit_dht.DHT22
+    temperature = float
+    humidity = float
 
     def __init__(self, pin_number):
         # using the BCM numbering scheme!!!!!!!
 
-        # TODO MOCK
-        pin_number = 18
-        # TODO MOCK STOP
+        # # TODO MOCK
+        # pin_number = 18
+        # # TODO MOCK STOP
 
         self.dhtDevice = adafruit_dht.DHT22(self._get_pin_by_number(pin_number))
+        # self.dhtDevice = adafruit_dht.DHT22(board.D18)
 
     def get_temperature(self):
         try:
-            return self.dhtDevice.temperature
+            self.temperature = self.dhtDevice.temperature
+            return self.temperature
         except RuntimeError as error:
-            return None
+            return self.temperature
 
     def get_humidity(self):
         try:
-            return self.dhtDevice.humidity
+            self.humidity = self.dhtDevice.humidity
+            return self.humidity
         except RuntimeError as error:
-            return None
+            return self.humidity
 
     def _get_pin_by_number(self, pin_number):
         pin_mapping = {
@@ -70,6 +76,6 @@ class Sensor_DHT22:
             27: board.D27,
         }
 
-        #TODO check
+        # TODO if exists
         return pin_mapping[pin_number]
 
