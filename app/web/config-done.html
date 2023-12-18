@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMPLEX</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>C.O.M.P.L.E.X </h1>
+    <h2>Complicated Overengineered Measurement Project for Logging Environmental eXtremes</h2>
+
+    {% include 'menu.html' %}
+
+
+    <h2>Configuration saved</h2>
+
+    <div class="dataRow">
+        <div>
+            <div class="card-header">Restart needed</div>
+            <div class="card-content">
+                <a href="/restart"><button>Restart now</button></a>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="footer">
+        © 2023 Matt (Martin) - 2005647
+    </div>
+
+</body>
+</html>
+
+
+
+
+
+
