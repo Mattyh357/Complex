@@ -1,4 +1,8 @@
+import subprocess
 import sys
+import threading
+import time
+import time
 
 from flask import Flask, render_template, redirect, url_for
 from flask_socketio import SocketIO
@@ -6,12 +10,11 @@ import eventlet
 import bcrypt
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired
 
 from Config import Config
 from Logger import Logger
-
 
 class ConfigForm(FlaskForm):
     """
@@ -39,7 +42,7 @@ class LoginForm(FlaskForm):
 
     Contains password field and its validation.
     """
-    password = StringField("Password", default='', validators=[DataRequired()])
+    password = PasswordField("Password", default='', validators=[DataRequired()])
     submit = SubmitField("Login")
 
 
@@ -92,9 +95,15 @@ class WebApp:
 
         @self.flask.route('/config-done')
         def config_done():
+            return render_template("config-done.html")
+
+        @self.flask.route('/restart')
+        def restart():
             link = "http://" + self.config.web_ip + ":" + str(self.config.web_port)
-            # TODO fix config done - reboot
-            return "config changed.... wait a sec for restart and then press this: <a href='"+link+"'>here</a>"
+            threading.Thread(target=restart_app).start()
+            return redirect(link)
+
+
 
     def get_config_page(self):
         form = ConfigForm()
@@ -171,7 +180,14 @@ class WebApp:
 
     def stop(self):
         """
-        Print a smiley face ....... Yeah.. I know :D
+        Stop the socketIO server.
         """
-        # TODO :)
-        print(":)")
+        self.socketio.stop()
+
+
+def restart_app(delay=0.1):
+    time.sleep(delay)
+    try:
+        subprocess.run(['sudo', 'systemctl', 'restart', 'complex'], check=False)
+    except subprocess.CalledProcessError:
+        Logger.error("Error while restarting.")
